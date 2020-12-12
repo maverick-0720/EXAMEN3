@@ -4,12 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.cenfotec.examen.entities.Cliente;
 import com.cenfotec.examen.entities.Orden;
@@ -44,6 +39,39 @@ public class ControllerOrden {
     public Orden create(@RequestBody Orden orden) {
         orden.setCosto(precio(orden.getTipoProducto(),orden.getCantProducto()));
         return repository.save(orden);
+    }
+
+    @GetMapping(path = { "/item/{id}" })
+    public List findAll1(@PathVariable String id) {
+        List<Orden>lista=repository.findAll();
+        for(int i=0;i<lista.size();i++) {
+            if(lista.get(i).getTipoProducto().equals(id)) {
+            }else {
+                lista.remove(lista.get(i));
+            }
+        }
+        return lista;
+    }
+
+
+    @PutMapping(path = { "/cantidad/{id}" })
+    public ResponseEntity<Orden> update(@PathVariable("id") long id, @RequestBody Orden orden2) {
+        return repository.findById(id).map(record -> {
+            record.setCantProducto(orden2.getCantProducto());
+            record.setCosto(precio(record.getTipoProducto(),orden2.getCantProducto()));
+            Orden updated = repository.save(record);
+            return ResponseEntity.ok().body(updated);
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping(path = { "tipo-orden/{id}" })
+    public ResponseEntity<Orden> update2(@PathVariable("id") long id, @RequestBody Orden orden) {
+        return repository.findById(id).map(record -> {
+            record.setTipoProducto(orden.getTipoProducto());
+            record.setCosto(precio(orden.getTipoProducto(),record.getCantProducto()));
+            Orden updated = repository.save(record);
+            return ResponseEntity.ok().body(updated);
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     public long precio(String tipo,long cantidad) {
